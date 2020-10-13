@@ -16,8 +16,10 @@ void* socketChat(void *arg){
 	char buffer[BUF_SIZE];
 	int retval;
 	int clientfd = *((int*)arg);
-	while(1){
+ 	int targetclient=-1;
 	
+	while(1){
+		printf("iteration");	
 		bzero(buffer, BUF_SIZE);
 		retval = read(clientfd, buffer, BUF_SIZE);
 	
@@ -29,26 +31,40 @@ void* socketChat(void *arg){
 			printf("Client %d: %s\n",clientfd, buffer);
 			break;
 		}
-		/*int targetClient;
-		switch(buffer[0]){
-			case '0':
-				targetClient =buffer[1];
-				break;
 
-			case '1':
-				break;
-
-		}*/
-		printf("Client %d: %s",clientfd, buffer);
-		//bzero(buffer, BUF_SIZE);
-		//fgets(buffer, BUF_SIZE, stdin); // takes input only of the given size or less
 		
-		// Testing by sending the same message back
-		retval = write(clientfd, buffer, strlen(buffer));
+		else if(strncmp(buffer,"connect",7)==0){
+			targetclient=buffer[8]-'0';
+			printf("Target is set to %d",targetclient);
+			fflush(stdin);
+			
+		}
+		else if(strncmp(buffer,"show",4)==0){
+			printf("People online are");
+			fflush(stdin);
+
+			
+		}
+		else if(strncmp(buffer,"disconnect",10)==0){
+			targetclient=-1;
+			printf("Disconnected from target");
+			fflush(stdin);
+	
+		}
+		else{
+			if(targetclient==-1){
+				targetclient=clientfd;
+			}
+		printf("I am writing no matter what");
+		fflush(stdin);
+		retval = write(targetclient, buffer, strlen(buffer));
 		if(retval < 0){
 			perror("Writing Error");
 			break;
-		}		
+		}	
+		}
+
+	
 	}
 	// Linked list entry delete
 	printf("\n[+] Client %d disconnected from server\n", clientfd);
