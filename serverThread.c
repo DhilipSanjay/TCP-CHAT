@@ -9,7 +9,7 @@
 
 #define BUF_SIZE 512
 #define NO_OF_CLIENTS 10
-
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 int clientfd[NO_OF_CLIENTS];
 
 void* socketChat(void *arg){
@@ -26,7 +26,7 @@ void* socketChat(void *arg){
 			break;	
 		}
 		if(strncmp(buffer, "exit", 4) == 0 || strlen(buffer) < 1){
-			printf("Client %d: %s\n",clientfd, buffer);
+			printf("Client %d: %s",clientfd, buffer);
 			break;
 		}
 		/*int targetClient;
@@ -50,7 +50,9 @@ void* socketChat(void *arg){
 			break;
 		}		
 	}
+	pthread_mutex_lock(&lock);
 	// Linked list entry delete
+	pthread_mutex_unlock(&lock);
 	printf("\n[+] Client %d disconnected from server\n", clientfd);
 }
 
@@ -94,7 +96,7 @@ int main(int argc, char *argv[]){
 		
 	pthread_t pid[NO_OF_CLIENTS];
 	int i = 0;
-	while(1){
+	while(1 && i < NO_OF_CLIENTS){
 	// 4) Accept function
 		clientlen = sizeof(client_addr);
 		clientfd = accept(sockfd, (struct sockaddr*)&client_addr, &clientlen);
@@ -103,14 +105,15 @@ int main(int argc, char *argv[]){
 			exit(1);
 		}
 		else{
+			pthread_mutex_lock(&lock);
+			// Linked list entry add
+			pthread_mutex_unlock(&lock);
 			printf("\n[+] Client %d connected to server\n", clientfd);
 		}
 	// 5) Threading
-	
 		pthread_create(&pid[i],NULL,&socketChat,&clientfd);
 		i++;	
 	}
-	
 	close(sockfd);
 	
 	return 0;	
