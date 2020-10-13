@@ -5,18 +5,14 @@
 #include<sys/types.h>
 #include<sys/socket.h>
 #include<netinet/in.h>
-
 #include<pthread.h>
-
 
 #define BUF_SIZE 512
 #define NO_OF_CLIENTS 10
 
-int client[NO_OF_CLIENTS];
+int clientfd[NO_OF_CLIENTS];
 
 void* socketChat(void *arg){
-	//detach from calling thread so as to avoid join
-	pthread_detach(pthread_self());
 	char buffer[BUF_SIZE];
 	int retval;
 	int clientfd = *((int*)arg);
@@ -29,11 +25,11 @@ void* socketChat(void *arg){
 			perror("Reading Error");
 			break;	
 		}
-		if(strncmp(buffer, "exit", 4) == 0||strlen(buffer)<1){
+		if(strncmp(buffer, "exit", 4) == 0 || strlen(buffer) < 1){
 			printf("Client %d: %s\n",clientfd, buffer);
 			break;
 		}
-		int targetClient;
+		/*int targetClient;
 		switch(buffer[0]){
 			case '0':
 				targetClient =buffer[1];
@@ -42,9 +38,9 @@ void* socketChat(void *arg){
 			case '1':
 				break;
 
-		}	
+		}*/
 		printf("Client %d: %s",clientfd, buffer);
-		bzero(buffer, BUF_SIZE);
+		//bzero(buffer, BUF_SIZE);
 		//fgets(buffer, BUF_SIZE, stdin); // takes input only of the given size or less
 		
 		// Testing by sending the same message back
@@ -54,6 +50,8 @@ void* socketChat(void *arg){
 			break;
 		}		
 	}
+	// Linked list entry delete
+	printf("\n[+] Client %d disconnected from server\n", clientfd);
 }
 
 
@@ -93,6 +91,9 @@ int main(int argc, char *argv[]){
 		printf("Listening on port: %d", portno);
 	else
 		printf("Error in listening");
+		
+	pthread_t pid[NO_OF_CLIENTS];
+	int i = 0;
 	while(1){
 	// 4) Accept function
 		clientlen = sizeof(client_addr);
@@ -106,13 +107,8 @@ int main(int argc, char *argv[]){
 		}
 	// 5) Threading
 	
-	pthread_t ptid;
-	pthread_create(&ptid,NULL,&socketChat,&clientfd);
-	pthread_join(ptid,NULL);
-	printf("\n[+] Client %d disconnected from server\n", clientfd);
-	pthread_exit(NULL);
-	break;		
-		
+		pthread_create(&pid[i],NULL,&socketChat,&clientfd);
+		i++;	
 	}
 	
 	close(sockfd);
