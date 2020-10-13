@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
 			exit(1);	
 		}
 		
-		if(strncmp(buffer, "exit", 4) == 0){
+		if(strncmp(buffer, "exit", 4) == 0 || strlen(buffer)<1){
 			printf("Server: %s\n", buffer);
 			break;
 		}
