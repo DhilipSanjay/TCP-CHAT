@@ -24,6 +24,7 @@ void* socketChat(void *arg){
 	while(1){	
 		bzero(buffer, BUF_SIZE);
 		retval = read(clientfd, buffer, BUF_SIZE);
+
 	
 		if(retval < 0){
 			perror("\nReading Error");
@@ -33,6 +34,9 @@ void* socketChat(void *arg){
 		if(strncmp(buffer, "exit", 4) == 0 || strlen(buffer) < 1){
 			//printf("Client %d: %s",clientfd, buffer);
 			break;
+		}
+		else if(strncmp(buffer,"ready",5)==0){
+			continue;
 		}
 		else if(strncmp(buffer,"connect",7)==0){
 			targetclient=buffer[8]-'0';
@@ -59,8 +63,21 @@ void* socketChat(void *arg){
 		}
 		else{
 			result = targetclient;
-			printf("\n Sending message %s to client %d\n",buffer,result);
+			if(result!=-1)
+			{
+				
+				printf("\n Sending message %s to client %d\n",buffer,result);
+		retval = write(clientfd, "Sending...\n", 11);
+		if(retval < 0){
+			perror("Writing Error");
+			break;
 		}
+	
+	
+
+			}
+
+				}
 	
 		if(result == -1){
 			result = clientfd;		
