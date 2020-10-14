@@ -15,36 +15,48 @@ int clientfd[NO_OF_CLIENTS];
 
 void* socketChat(void *arg){
 	char buffer[BUF_SIZE];
+	char temp[BUF_SIZE];
 	int retval;
 	int clientfd = *((int*)arg);
  	int targetclient=-1;
  	int result = clientfd;
- 	char a;
+ 	char a = clientfd + '0';
+ 	
+ 	retval = write(clientfd, &a, 1);
+ 	if(retval < 0){
+ 		perror("\nError in sending client id");
+ 		exit(1);
+ 	}
 	
 	while(1){	
 		bzero(buffer, BUF_SIZE);
 		retval = read(clientfd, buffer, BUF_SIZE);
 
-	
 		if(retval < 0){
-			perror("\nReading Error");
+			perror("\nReading Error\n");
 			break;	
 		}
 		printf("Client %d: %s", clientfd, buffer);
 		if(strncmp(buffer, "exit", 4) == 0 || strlen(buffer) < 1){
 			//printf("Client %d: %s",clientfd, buffer);
+			result = clientfd;
 			break;
-		}
-		else if(strncmp(buffer,"ready",5)==0){
-			continue;
 		}
 		else if(strncmp(buffer,"connect",7)==0){
 			targetclient=buffer[8]-'0';
-			printf("[+]Client %d is connected to client %d\n",clientfd, targetclient);						
-			bzero(buffer, BUF_SIZE);
-			strcpy(buffer, "Connected Successfully\n");
-			result = clientfd;
-			fflush(stdin);
+			if(isValid(targetclient, clientfd) == 1){
+				printf("[+]Client %d is connected to client %d\n",clientfd, targetclient);						
+				bzero(buffer, BUF_SIZE);
+				strcpy(buffer, "Connected Successfully\n");			
+				result = clientfd;
+				fflush(stdin);
+			}
+			else{
+				printf("[+] Client %d cannot connect to client %d\n", clientfd, targetclient);
+				bzero(buffer, BUF_SIZE);
+				strcpy(buffer, "Invalid client\n");
+				targetclient = -1;
+			}
 		}
 		else if(strncmp(buffer,"show",4)==0){
 			bzero(buffer, BUF_SIZE);
@@ -54,7 +66,7 @@ void* socketChat(void *arg){
 			fflush(stdin);			
 		}
 		else if(strncmp(buffer,"disconnect",10)==0){
-			printf("\n[+]Client %d disconnected from client %d", clientfd, targetclient);
+			printf("\n[+] Client %d disconnected from client %d", clientfd, targetclient);
 			bzero(buffer, BUF_SIZE);
 			strcpy(buffer, "Disconnected Successfully\n");
 			targetclient=-1;
@@ -65,19 +77,32 @@ void* socketChat(void *arg){
 			result = targetclient;
 			if(result!=-1)
 			{
+				// Changing message format
+				// Msg from client CLIENTFD : msg
+				bzero(temp, BUF_SIZE);
+				strcpy(temp, buffer);
+				bzero(buffer, BUF_SIZE);
+				strcpy(buffer, "Msg from client ");
+				a = clientfd + '0';
+				strncat(buffer, &a, 1);
+				strcat(buffer, " :");
+				strcat(buffer, temp);
 				
-				printf("\n Sending message %s to client %d\n",buffer,result);
-		retval = write(clientfd, "Sending...\n", 11);
-		if(retval < 0){
-			perror("Writing Error");
-			break;
-		}
-	
-	
-
-			}
-
+				printf("\n[+] Sending message from client %d to client %d\n", clientfd, result);
+				// changing message format
+				// Sending msg to client TARGET CLIENT
+				bzero(temp, BUF_SIZE);
+				strcpy(temp, "Sending msg to client ");
+				a = targetclient + '0';
+				strncat(temp, &a, 1);
+				strcat(temp, "\n");
+				retval = write(clientfd, temp, sizeof(temp));
+				if(retval < 0){
+					perror("Writing Error");
+					break;
 				}
+			}
+		}
 	
 		if(result == -1){
 			result = clientfd;		
@@ -92,10 +117,12 @@ void* socketChat(void *arg){
 	}
 	pthread_mutex_lock(&lock);
 	findandremove(clientfd);
-	//printf("Clients online are:\n");
-	//printf("%s", print());
 	pthread_mutex_unlock(&lock);
-	printf("\n[+] Client %d disconnected from server\n", clientfd);
+	retval = write(result, buffer, strlen(buffer)); //send exit message to client
+	if(retval < 0){
+		perror("Writing Error");
+	}
+	printf("\n[+] Client %d exiting\n", clientfd);
 }
 
 

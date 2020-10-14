@@ -6,8 +6,12 @@
 #include<sys/socket.h>
 #include<netinet/in.h>
 #include<arpa/inet.h>
+#include<pthread.h>
 
 #define BUF_SIZE 512
+
+void *sendMessage(void *arg);
+void *recvMessage(void *arg);
 
 int main(int argc, char *argv[]){
 
@@ -44,11 +48,29 @@ int main(int argc, char *argv[]){
 		exit(1);
 	}
 	else{
-		printf("\nConnected to the server:\nClient: ");
+		printf("\n[+] Connected to the server:\n[+] Your Client id: ");
 	}
 	
-	char *peer = (char*)malloc(100*sizeof(char));
-	strcpy(peer, "Server");
+	bzero(buffer, BUF_SIZE);
+	if(read(sockfd, buffer, BUF_SIZE)< 0){
+ 		perror("\nError in sending client id");
+ 		exit(1);
+ 	}
+	printf("%s\n[+] Your messages will be sent to server.\n[+] If not connected to any client, you'll get your message as reply from server!\n", buffer);
+	
+	pthread_t pid1, pid2;
+	pthread_create(&pid1,NULL,&sendMessage, &sockfd);
+	pthread_create(&pid2,NULL,&recvMessage, &sockfd);
+	pthread_join(pid1, NULL);
+	pthread_join(pid2, NULL);
+	close(sockfd);
+	return 0;	
+}
+
+void *sendMessage(void *arg){
+	int sockfd = *((int*)arg);
+	int retval;
+	char buffer[BUF_SIZE];
 	while(1){
 		bzero(buffer, BUF_SIZE);
 		fgets(buffer, BUF_SIZE, stdin); // takes input only of the given size or less
@@ -60,8 +82,16 @@ int main(int argc, char *argv[]){
 		}
 		if(strncmp(buffer, "exit", 4) == 0)
 			break;
-				
-			
+	}
+	return NULL;
+}
+
+void *recvMessage(void *arg){
+	int sockfd = *((int*)arg);
+	char buffer[BUF_SIZE];
+	int retval;
+	
+	while(1){
 		bzero(buffer, BUF_SIZE);
 		retval = read(sockfd, buffer, BUF_SIZE);
 		if(retval < 0){
@@ -70,18 +100,13 @@ int main(int argc, char *argv[]){
 		}
 		
 		if(strncmp(buffer, "exit", 4) == 0 || strlen(buffer)<1){
-			printf("Server: %s\n", buffer);
+			printf("> Server: %s\n", buffer);
 			break;
 		}
-		else if(strncmp(buffer,"Connected Successfully", 22) == 0)
-			strcpy(peer, "Peer");
-		else if(strncmp(buffer,"Disconnected Successfully", 25) == 0)
-			strcpy(peer, "Server");
-	
-				
-		printf("%s: %sClient: ",peer, buffer);
+
+		printf("\n> Server: %s", buffer);
 	}
-	
-	close(sockfd);
-	return 0;	
+	return NULL;
 }
+
+
