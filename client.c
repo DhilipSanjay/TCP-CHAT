@@ -47,7 +47,8 @@ int main(int argc, char *argv[]){
 		printf("\nConnected to the server:\nClient: ");
 	}
 	
-	
+	char *peer = (char*)malloc(100*sizeof(char));
+	strcpy(peer, "Server");
 	while(1){
 		bzero(buffer, BUF_SIZE);
 		fgets(buffer, BUF_SIZE, stdin); // takes input only of the given size or less
@@ -59,7 +60,12 @@ int main(int argc, char *argv[]){
 		}
 		if(strncmp(buffer, "exit", 4) == 0)
 			break;
-		
+		else if(strncmp(buffer,"Connected Successfully", 22) == 0)
+			strcpy(peer, "Peer");
+		else if(strncmp(buffer,"Disconnected Successfully", 25) == 0)
+			strcpy(peer, "Server");
+			
+			
 		bzero(buffer, BUF_SIZE);
 		retval = read(sockfd, buffer, BUF_SIZE);
 		if(retval < 0){
@@ -72,7 +78,7 @@ int main(int argc, char *argv[]){
 			break;
 		}
 				
-		printf("Server: %sClient: ", buffer);
+		printf("%s: %sClient: ",peer, buffer);
 	}
 	
 	close(sockfd);

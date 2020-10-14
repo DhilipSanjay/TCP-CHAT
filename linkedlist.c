@@ -62,21 +62,27 @@ void findandremove(int c_id){
  }
 }
 
-char* print(){
+char* print(int c){
  
  struct Llist *ptr = head;
  int i = 1;
+ int online = 0;
  char *result=(char*)malloc(500 * sizeof(char));
- 
+ strcat(result, "Clients online:\n");
  while(ptr != NULL){
-   strcat(result, "Client:");
-   char a = ptr->client_id + '0';
-   strncat(result, &a,1);
-   strcat(result,"\n");
+   if(ptr->client_id != c){
+	strcat(result, "Client-");
+	char a = ptr->client_id + '0';
+  	strncat(result, &a,1);
+   	strcat(result,"\n");
+	online++;
+   }
    //printf("%c", a);
    //printf("Client %d id = %d\n", i, ptr->client_id);
    ptr = ptr->next;
    }
-   //strcat(result, "\0");   
+ if(online == 0)
+	strcpy(result, "No one is online\n");
    return result;
 }
+
