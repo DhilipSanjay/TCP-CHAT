@@ -60,11 +60,7 @@ int main(int argc, char *argv[]){
 		}
 		if(strncmp(buffer, "exit", 4) == 0)
 			break;
-		else if(strncmp(buffer,"Connected Successfully", 22) == 0)
-			strcpy(peer, "Peer");
-		else if(strncmp(buffer,"Disconnected Successfully", 25) == 0)
-			strcpy(peer, "Server");
-			
+				
 			
 		bzero(buffer, BUF_SIZE);
 		retval = read(sockfd, buffer, BUF_SIZE);
@@ -77,6 +73,11 @@ int main(int argc, char *argv[]){
 			printf("Server: %s\n", buffer);
 			break;
 		}
+		else if(strncmp(buffer,"Connected Successfully", 22) == 0)
+			strcpy(peer, "Peer");
+		else if(strncmp(buffer,"Disconnected Successfully", 25) == 0)
+			strcpy(peer, "Server");
+	
 				
 		printf("%s: %sClient: ",peer, buffer);
 	}
