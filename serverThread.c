@@ -21,20 +21,20 @@ void* socketChat(void *arg){
  	int targetclient=-1;
  	int result = clientfd;
  	char a = clientfd + '0';
- 	
+
  	retval = write(clientfd, &a, 1);
  	if(retval < 0){
  		perror("\nError in sending client id");
  		exit(1);
  	}
-	
-	while(1){	
+
+	while(1){
 		bzero(buffer, BUF_SIZE);
 		retval = read(clientfd, buffer, BUF_SIZE);
 
 		if(retval < 0){
 			perror("\nReading Error\n");
-			break;	
+			break;
 		}
 		printf("Client %d: %s", clientfd, buffer);
 		if(strncmp(buffer, "exit", 4) == 0 || strlen(buffer) < 1){
@@ -45,9 +45,9 @@ void* socketChat(void *arg){
 		else if(strncmp(buffer,"connect",7)==0){
 			targetclient=buffer[8]-'0';
 			if(isValid(targetclient, clientfd) == 1){
-				printf("[+]Client %d is connected to client %d\n",clientfd, targetclient);						
+				printf("[+]Client %d is connected to client %d\n",clientfd, targetclient);
 				bzero(buffer, BUF_SIZE);
-				strcpy(buffer, "Connected Successfully\n");			
+				strcpy(buffer, "Connected Successfully\n");
 				result = clientfd;
 				fflush(stdin);
 			}
@@ -63,10 +63,10 @@ void* socketChat(void *arg){
 			strcpy(buffer, print(clientfd));
 			printf("\n%s", print());
 			result = clientfd;
-			fflush(stdin);			
+			fflush(stdin);
 		}
 		else if(strncmp(buffer,"disconnect",10)==0){
-			printf("\n[+] Client %d disconnected from client %d", clientfd, targetclient);
+			printf("\n[+] Client %d disconnected from client %d\n", clientfd, targetclient);
 			bzero(buffer, BUF_SIZE);
 			strcpy(buffer, "Disconnected Successfully\n");
 			targetclient=-1;
@@ -87,7 +87,7 @@ void* socketChat(void *arg){
 				strncat(buffer, &a, 1);
 				strcat(buffer, " :");
 				strcat(buffer, temp);
-				
+
 				printf("\n[+] Sending message from client %d to client %d\n", clientfd, result);
 				// changing message format
 				// Sending msg to client TARGET CLIENT
@@ -103,9 +103,9 @@ void* socketChat(void *arg){
 				}
 			}
 		}
-	
+
 		if(result == -1){
-			result = clientfd;		
+			result = clientfd;
 		}
 		//printf("\nI am writing no matter what");
 		fflush(stdin);
@@ -132,12 +132,12 @@ int main(int argc, char *argv[]){
 		printf("SYNTAX: %s [portno]", argv[0]);
 		exit(1);
 	}
-	
+
 	int sockfd, clientfd, portno, retval;
 	struct sockaddr_in server_addr, client_addr;
 	socklen_t clientlen;
 	portno = atoi(argv[1]);
-	
+
 // 1) Socket function
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sockfd < 0){
@@ -145,24 +145,24 @@ int main(int argc, char *argv[]){
 		exit(1);
 	}
 	bzero((char *)&server_addr, sizeof(server_addr)); // fills with zero
-		
+
 	// set the values in structure
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY); // any local address
 	server_addr.sin_port = htons(portno);
-	
+
 // 2) Bind function
 	if(bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
 		perror("Binding Error");
 		exit(1);
 	}
-		
+
 // 3) Listen function
 	if(listen(sockfd, NO_OF_CLIENTS) == 0)
 		printf("Listening on port: %d", portno);
 	else
 		printf("Error in listening");
-		
+
 	pthread_t pid[NO_OF_CLIENTS];
 	int i = 0;
 	while(1 && i < NO_OF_CLIENTS){
@@ -182,9 +182,9 @@ int main(int argc, char *argv[]){
 		}
 	// 5) Threading
 		pthread_create(&pid[i],NULL,&socketChat,&clientfd);
-		i++;	
+		i++;
 	}
 	close(sockfd);
-	
-	return 0;	
+
+	return 0;
 }
