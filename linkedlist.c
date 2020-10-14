@@ -48,6 +48,8 @@ void findandremove(int c_id){
     
    if(prevptr == NULL){ //if present in head
      head = head->next;
+     if(head == NULL)
+     	tail = NULL;
      free(ptr);
      break;
    }else{
@@ -71,7 +73,7 @@ char* print(int c){
  strcat(result, "Clients online:\n");
  while(ptr != NULL){
    if(ptr->client_id != c){
-	strcat(result, "Client-");
+	strcat(result, "[*] Client-");
 	char a = ptr->client_id + '0';
   	strncat(result, &a,1);
    	strcat(result,"\n");
@@ -85,4 +87,16 @@ char* print(int c){
 	strcpy(result, "No one is online\n");
    return result;
 }
+
+int isValid(int c, int clientfd){
+	struct Llist *ptr = head;
+	while(ptr != NULL){
+	   if(ptr->client_id == c && ptr->client_id != clientfd){
+		return 1;
+	   }
+	 	ptr = ptr->next;  
+	}
+	return 0;
+}
+
 
