@@ -59,6 +59,7 @@ void* socketChat(void *arg){
 		}
 		else{
 			result = targetclient;
+			printf("\n Sending message %s to client %d\n",buffer,result);
 		}
 	
 		if(result == -1){
