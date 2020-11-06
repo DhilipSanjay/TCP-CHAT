@@ -21,7 +21,7 @@ void socketChat(void *arg){
 			perror("Reading Error");
 			break;	
 		}
-		if(strncmp(buffer, "exit", 4) == 0){
+		if(strncmp(buffer, "exit", 4) == 0||strlen(buffer)<1){
 			printf("Client %d: %s\n",clientfd, buffer);
 			break;
 		}
